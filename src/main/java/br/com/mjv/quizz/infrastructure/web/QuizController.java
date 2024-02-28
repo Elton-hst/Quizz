@@ -24,8 +24,7 @@ public class QuizController {
     }
 
     @GetMapping({"/{category}/{difficulty}"})
-    public ResponseEntity<?> findQuiz(@PathVariable String category,
-                                      @PathVariable QuizDifficulty difficulty) {
+    public ResponseEntity<?> findQuiz(@PathVariable String category, @PathVariable QuizDifficulty difficulty) {
         GetQuizDto quizDto = new GetQuizDto(category, difficulty);
         var quiz = quizFacade.findQuiz(quizDto);
         return new ResponseEntity<>(quiz, HttpStatus.OK);

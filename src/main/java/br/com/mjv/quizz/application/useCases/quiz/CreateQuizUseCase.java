@@ -8,12 +8,15 @@ import br.com.mjv.quizz.infrastructure.configs.exception.QuizException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
 public class CreateQuizUseCase {
 
     private final QuizRepository repository;
     private final CreateQuestionUseCase createQuestionUseCase;
+
+    public CreateQuizUseCase(QuizRepository quizRepository, CreateQuestionUseCase createQuestionUseCase) {
+        this.repository = quizRepository;
+        this.createQuestionUseCase = createQuestionUseCase;
+    }
 
     public Quiz execute(CreateUpdateQuizDto quizDto) {
         var questions = createQuestionUseCase.execute(quizDto.questionDto());

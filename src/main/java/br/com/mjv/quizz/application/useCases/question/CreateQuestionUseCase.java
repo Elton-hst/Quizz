@@ -15,11 +15,13 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
 public class CreateQuestionUseCase {
 
     private final CreateAlternativeUseCase createAlternativeUseCase;
+
+    public CreateQuestionUseCase(CreateAlternativeUseCase createAlternativeUseCase) {
+        this.createAlternativeUseCase = createAlternativeUseCase;
+    }
 
     public List<Question> execute(List<CreateUpdateQuestionDto> questionDtos) {
         List<Question> questions = new ArrayList<>();

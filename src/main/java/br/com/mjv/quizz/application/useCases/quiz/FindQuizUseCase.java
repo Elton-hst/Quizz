@@ -13,11 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
 public class FindQuizUseCase {
 
     private final QuizRepository repository;
+
+    public FindQuizUseCase(QuizRepository repository) {
+        this.repository = repository;
+    }
 
     public Quiz execute(GetQuizDto quizDto) {
         Quiz quiz = new Quiz(quizDto.category(), quizDto.difficulty());

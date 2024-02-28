@@ -16,18 +16,21 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-@Service
-@RequiredArgsConstructor
 public class CreateUserUseCase {
 
     private final UsersRepository repository;
     private final ResourceBundle messageBundle;
 
+    public CreateUserUseCase(UsersRepository repository, ResourceBundle messageBundle) {
+        this.repository = repository;
+        this.messageBundle = messageBundle;
+    }
+
     private String getMessage(String key, Locale locale) {
         return ResourceBundle.getBundle(messageBundle.getBaseBundleName(), locale).getString(key);
     }
 
-    public ReturnWithMessage<User> execute(CreateUpdateUserDto userDto, Locale locale) {
+    public ReturnWithMessage<User> execute(CreateUpdateUserDto userDto, Locale locale) throws Exception {
         Validator.validate(new UserValidate(), userDto);
 
         User user = new User(userDto.name(), userDto.phone(),userDto.score(), ChatContext.INITIALIZED_CHAT);

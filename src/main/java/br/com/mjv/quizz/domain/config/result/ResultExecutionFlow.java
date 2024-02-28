@@ -1,46 +1,51 @@
 package br.com.mjv.quizz.domain.config.result;
 
+import org.springframework.util.Assert;
+
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class ResultExecutionFlow<FinalTypeReturn, ProblemType extends RuntimeException> {
+public class ResultExecutionFlow<FinalTypeReturn,ProblemType> {
 
-    private final FinalTypeReturn finalTypeReturn;
-    private final ProblemType problemType;
+    private FinalTypeReturn finalReturn;
+    private ProblemType problemReturn;
 
-    public ResultExecutionFlow(FinalTypeReturn finalTypeReturn, ProblemType problemType) {
-        this.finalTypeReturn = finalTypeReturn;
-        this.problemType = problemType;
+    public ResultExecutionFlow(FinalTypeReturn retornoSucesso, ProblemType retornoProblema) {
+        this.finalReturn = retornoSucesso;
+        this.problemReturn = retornoProblema;
     }
 
-    public FinalTypeReturn getFinalTypeReturn() {
-        return finalTypeReturn;
+    public static <TipoRetornoFinal,TipoProblema> ResultExecutionFlow<TipoRetornoFinal,TipoProblema> success(TipoRetornoFinal retornoSucesso) {
+        return new ResultExecutionFlow<TipoRetornoFinal,TipoProblema>(retornoSucesso,null);
     }
 
-    public ProblemType getProblemType() {
-        return problemType;
+    public static <TipoRetornoFinal,TipoProblema> ResultExecutionFlow<TipoRetornoFinal,TipoProblema> problem(TipoProblema retornoProblema) {
+        return new ResultExecutionFlow<TipoRetornoFinal,TipoProblema>(null,retornoProblema);
     }
 
-    public static <FinalTypeReturn, ProblemType extends RuntimeException> ResultExecutionFlow<FinalTypeReturn, ProblemType> success(FinalTypeReturn finalTypeReturn) {
-        return new ResultExecutionFlow<>(finalTypeReturn, null);
-    }
-
-    public static <FinalTypeReturn, ProblemType extends RuntimeException> ResultExecutionFlow<FinalTypeReturn, ProblemType> problem(ProblemType problemType) {
-        return new ResultExecutionFlow<>(null, problemType);
-    }
-
-    public <ExceptionType extends RuntimeException> ResultExecutionFlow<FinalTypeReturn, ProblemType> throwsEarlyIf(Class<ExceptionType> classeProblema, Function<ExceptionType, ? extends RuntimeException> funcao) {
-        if(problemType != null && problemType.getClass().equals(classeProblema)) {
-            throw funcao.apply((ExceptionType)this.problemType);
+    @SuppressWarnings("unchecked")
+    public <ExceptionType> ResultExecutionFlow<FinalTypeReturn,ProblemType> throwsEarlyIf(Class<ExceptionType> classeProblema, Function<ExceptionType, ? extends Exception> funcao) throws Exception {
+        if(problemReturn != null && problemReturn.getClass().equals(classeProblema)) {
+            throw funcao.apply((ExceptionType)this.problemReturn);
         }
+
         return this;
     }
 
     public Optional<FinalTypeReturn> execute() {
-        if (problemType != null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(finalTypeReturn);
+        return Optional.ofNullable(this.finalReturn);
     }
+
+    public ResultExecutionFlow<FinalTypeReturn,ProblemType> ifProblem(
+            Class<?> classeProblema, Function<ProblemType, FinalTypeReturn> funcao) {
+
+        if(problemReturn != null && classeProblema.isAssignableFrom(problemReturn.getClass())) {
+            Assert.isTrue(Objects.isNull(this.finalReturn), "O retorno final não deveria estar setado ainda. "+this.finalReturn);
+            this.finalReturn = funcao.apply(this.problemReturn);
+        }
+        return this;
+    }
+
 }
 

@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
 public class FindUserUseCase {
 
     private final UsersRepository repository;
+
+    public FindUserUseCase(UsersRepository repository) {
+        this.repository = repository;
+    }
 
     public User execute(GetUserDto userDto) {
         User user = new User(userDto.phone());

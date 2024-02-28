@@ -1,44 +1,64 @@
 package br.com.mjv.quizz.domain.config.result;
 
+import org.springframework.util.Assert;
+
 import java.util.function.Function;
 
 public class Result<ProblemType extends RuntimeException, SuccessType> {
-    private boolean isSuccess;
-    private ProblemType problemType;
-    private SuccessType successType;
 
-    public Result(boolean isSuccess, ProblemType problemType, SuccessType successType) {
-        this.isSuccess = isSuccess;
-        this.problemType = problemType;
-        this.successType = successType;
+    private boolean isSuccess;
+    private ProblemType problem;
+    private SuccessType successReturnObject;
+
+    private Result(SuccessType successReturnObject) {
+        this.successReturnObject = successReturnObject;
+        this.isSuccess = true;
+    }
+
+    private Result(boolean success) {
+        this.isSuccess = success;
+    }
+
+    private Result(ProblemType problem) {
+        this.problem = problem;
+    }
+
+    public static Result<RuntimeException, Void> emptySuccess() {
+        return new Result<RuntimeException, Void>(true);
+    }
+
+    public static <TipoProblema extends RuntimeException, TipoRetorno> Result<TipoProblema, TipoRetorno> failWithProblem(
+            TipoProblema problema) {
+        return new Result<TipoProblema, TipoRetorno>(problema);
+    }
+
+    public boolean hasError() {
+        return !this.isSuccess;
+    }
+
+    public RuntimeException getProblem() {
+        Assert.isTrue(!isSuccess, "Só pode buscar o problema se tiver erro");
+        return this.problem;
+    }
+
+    public SuccessType getSuccessReturn() {
+        Assert.isTrue(isSuccess, "Só pode buscar o sucesso se tiver dado certo");
+        return this.successReturnObject;
     }
 
     public boolean isSuccess() {
-        return isSuccess;
+        return this.isSuccess;
     }
 
-    public ProblemType getProblemType() {
-        return problemType;
+    public static <T> Result<RuntimeException, T> successWithReturn(
+            T successReturn) {
+        return new Result<RuntimeException, T>(successReturn);
     }
 
-    public SuccessType getSuccessType() {
-        return successType;
-    }
-
-    public <FinalTypeReturn> ResultExecutionFlow<FinalTypeReturn, ProblemType> ifSuccess(Function<SuccessType, FinalTypeReturn> function) {
-        if (isSuccess) {
-            FinalTypeReturn result = function.apply(successType);
-            return ResultExecutionFlow.success(result);
-        } else {
-            return ResultExecutionFlow.problem(problemType);
+    public <T> ResultExecutionFlow<T,ProblemType> ifSuccess(Function<SuccessType, T> funcao) {
+        if(isSuccess()) {
+            return ResultExecutionFlow.success(funcao.apply(this.successReturnObject));
         }
-    }
-
-    public static <SuccessType> Result<RuntimeException, SuccessType> successWithReturn(SuccessType successType) {
-        return new Result<>(true, null, successType);
-    }
-
-    public static <ProblemType extends RuntimeException, SuccessType> Result<ProblemType, SuccessType> failWithProblem(ProblemType problemType) {
-        return new Result<>(false, problemType, null);
+        return ResultExecutionFlow.problem(this.problem);
     }
 }
