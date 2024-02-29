@@ -1,18 +1,16 @@
 package br.com.mjv.quizz.application.useCases.user;
 
 import br.com.mjv.quizz.domain.config.result.Result;
-import br.com.mjv.quizz.domain.config.result.ReturnWithMessage;
 import br.com.mjv.quizz.domain.user.User;
 import br.com.mjv.quizz.domain.user.dto.CreateUpdateUserDto;
 import br.com.mjv.quizz.domain.user.repository.UsersRepository;
 import br.com.mjv.quizz.infrastructure.configs.exception.UserException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
+@Slf4j
 public class UpdateUserUseCase {
 
     private final UsersRepository repository;
@@ -26,28 +24,30 @@ public class UpdateUserUseCase {
         return ResourceBundle.getBundle(messageBundle.getBaseBundleName(), locale).getString(key);
     }
 
-    public ReturnWithMessage<User> execute(CreateUpdateUserDto userDto, Locale locale) throws Exception {
-        User newUser = new User(userDto.name(), userDto.phone(), userDto.score(), userDto.context());
+    public User execute(CreateUpdateUserDto userDto) {
+        User user = new User(userDto.name(), userDto.phone(), userDto.score(), userDto.context());
+        return result(user, Locale.ENGLISH);
+    }
+    public User execute(CreateUpdateUserDto userDto, Locale locale) {
+        User user = new User(userDto.name(), userDto.phone(), userDto.score(), userDto.context());
+        return result(user, locale);
+    }
 
-        var result = update(newUser);
+    public User result(User user, Locale locale) {
+        var result = updateUser(user);
 
         return result.ifSuccess(user1 -> {
-            return new ReturnWithMessage<User>(getMessage("users.update.success", locale), user1);
+            log.info("User -> phone: {}, status: {}", user1.phone(), getMessage("users.update.success", locale));
+            return user1;
         }).throwsEarlyIf(RuntimeException.class, error -> {
-            return new RuntimeException(getMessage("users.update.fail", locale), error.getCause());
-        }).execute().orElseThrow(() -> {
-            return new UserException(getMessage("users.update.fail", locale));
-        });
+            log.info("User -> phone: {}, status: {}", user.phone(), getMessage("users.update.fail", locale));
+            return new UserException("Error update user");
+        }).execute();
     }
 
-    private Result<RuntimeException, User> update(User user) {
-        var result = repository.update(user).orElse(null);
-
-        if (Objects.isNull(result)) {
-            return Result.failWithProblem(new RuntimeException());
-        } else {
-            return Result.successWithReturn(result);
-        }
+    private Result<User, RuntimeException> updateUser(User user) {
+        return this.repository.update(user)
+                .map(Result::<User, RuntimeException>successWithReturn)
+                .orElse(Result.failWithProblem(new UserException("Error update user")));
     }
-
 }

@@ -1,5 +1,6 @@
 package br.com.mjv.quizz.infrastructure.web.docs;
 
+import br.com.mjv.quizz.domain.user.User;
 import br.com.mjv.quizz.domain.user.dto.CreateUpdateUserDto;
 import br.com.mjv.quizz.domain.config.result.ReturnWithMessage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,7 +20,7 @@ public interface UserControllerDocs {
             @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Erro ao criar um novo usuário"),
     })
-    ResponseEntity<ReturnWithMessage> createUser(CreateUpdateUserDto userDto, UriComponentsBuilder uriBuilder, final Locale locale) throws Exception;
+    ResponseEntity<User> createUser(CreateUpdateUserDto userDto, UriComponentsBuilder uriBuilder, final Locale locale) throws Exception;
 
 //    @Operation(summary = "Atualiza os dados do usuário", method ="PUT")
 //    @ApiResponses(value = {

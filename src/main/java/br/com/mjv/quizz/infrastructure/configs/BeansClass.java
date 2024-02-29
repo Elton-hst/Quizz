@@ -33,8 +33,8 @@ public class BeansClass {
     }
     
     @Bean
-    public FindUserUseCase findUserUseCase(UsersRepository repository) {
-        return new FindUserUseCase(repository);
+    public FindUserUseCase findUserUseCase(UsersRepository repository, ResourceBundle resourceBundle) {
+        return new FindUserUseCase(repository, resourceBundle);
     }
 
     @Bean
@@ -48,13 +48,13 @@ public class BeansClass {
     }
     
     @Bean
-    public CreateQuizUseCase createQuizUseCase(QuizRepository quizRepository, CreateQuestionUseCase createQuestionUseCase) {
-        return new CreateQuizUseCase(quizRepository, createQuestionUseCase);
+    public CreateQuizUseCase createQuizUseCase(QuizRepository quizRepository, CreateQuestionUseCase createQuestionUseCase, ResourceBundle resourceBundle) {
+        return new CreateQuizUseCase(quizRepository, createQuestionUseCase, resourceBundle);
     }
 
     @Bean
-    public FindQuizUseCase findQuizUseCase(QuizRepository repository) {
-        return new FindQuizUseCase(repository);
+    public FindQuizUseCase findQuizUseCase(QuizRepository repository, ResourceBundle resourceBundle) {
+        return new FindQuizUseCase(repository, resourceBundle);
     }
 
     @Bean

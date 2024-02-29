@@ -40,9 +40,20 @@ public class WhatsAppController {
         return ResponseEntity.ok(new ReturnWithMessage(message, response));
     }
 
+    @GetMapping({"/webhooks"})
+    public ResponseEntity<String> handlerWebhook(@RequestParam("hub.mode") String mode,
+                                                 @RequestParam("hub.challenge") String challenge,
+                                                 @RequestParam("hub.verify_token") String token) {
+        log.info("mode: {}", mode);
+        log.info("challenge: {}", challenge);
+        log.info("token: {}", token);
+
+        return new ResponseEntity<>(challenge, HttpStatus.OK);
+    }
+
     @PostMapping({"/webhooks"})
     @Transactional
-    public ResponseEntity<String> replyWhatsAppMessage(@RequestBody WhatsAppMessageReplyRequest request) {
+    public ResponseEntity<String> replyWhatsAppMessage(@RequestBody WhatsAppMessageReplyRequest request) throws Exception {
         if (Objects.isNull(request.getEntry().getFirst().getChanges().getFirst().getValue().getMessages())) {
 
             return new ResponseEntity<>("Message is empty", HttpStatus.BAD_REQUEST);

@@ -20,7 +20,7 @@ public class UserFacade {
     private final FindUserUseCase findUserUseCase;
     private final UpdateUserUseCase updateUserUseCase;
 
-    public ReturnWithMessage<User> createUser(CreateUpdateUserDto userDto, Locale locale) {
+    public User createUser(CreateUpdateUserDto userDto, Locale locale) {
         return createUserUseCase.execute(userDto, locale);
     }
 
@@ -28,7 +28,7 @@ public class UserFacade {
         return findUserUseCase.execute(userDto);
     }
 
-    public ReturnWithMessage<User> updateUser(CreateUpdateUserDto userDto, Locale locale) {
+    public User updateUser(CreateUpdateUserDto userDto, Locale locale) {
         return updateUserUseCase.execute(userDto, locale);
     }
 }

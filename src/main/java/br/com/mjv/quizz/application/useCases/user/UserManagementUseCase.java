@@ -3,9 +3,7 @@ package br.com.mjv.quizz.application.useCases.user;
 import br.com.mjv.quizz.domain.user.User;
 import br.com.mjv.quizz.domain.user.dto.CreateUpdateUserDto;
 import br.com.mjv.quizz.infrastructure.persistence.entity.basicEntity.ChatContext;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 
@@ -35,22 +33,12 @@ public class UserManagementUseCase {
 
     public User updateUser(String phone, ChatContext context) {
         CreateUpdateUserDto userDto = new CreateUpdateUserDto(phone, context);
-        var result = updateUser.execute(userDto, Locale.ENGLISH);
-
-        log.info("Status: {}", result.getMessage());
-        log.info("User -> name: {}, phone: {}, context: {}", result.getData().name(), result.getData().phone(), result.getData().context());
-
-        return result.getData();
+        return updateUser.execute(userDto, Locale.ENGLISH);
     }
 
     public User updateUser(String phone, Double score) {
         CreateUpdateUserDto userDto = new CreateUpdateUserDto(phone, score);
-        var result = updateUser.execute(userDto, Locale.ENGLISH);
-
-        log.info("Status: {}", result.getMessage());
-        log.info("User -> name: {}, phone: {}, context: {}", result.getData().name(), result.getData().phone(), result.getData().context());
-
-        return result.getData();
+        return updateUser.execute(userDto, Locale.ENGLISH);
     }
 
 }

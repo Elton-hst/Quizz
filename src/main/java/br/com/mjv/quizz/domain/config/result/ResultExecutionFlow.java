@@ -1,51 +1,35 @@
 package br.com.mjv.quizz.domain.config.result;
 
-import org.springframework.util.Assert;
-
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 
-public class ResultExecutionFlow<FinalTypeReturn,ProblemType> {
+public class ResultExecutionFlow<FinalTypeReturn, ProblemType extends RuntimeException> {
 
-    private FinalTypeReturn finalReturn;
-    private ProblemType problemReturn;
+    private Result<FinalTypeReturn, ProblemType> result;
+    private FinalTypeReturn finalTypeReturn;
+    private ProblemType problemType;
 
-    public ResultExecutionFlow(FinalTypeReturn retornoSucesso, ProblemType retornoProblema) {
-        this.finalReturn = retornoSucesso;
-        this.problemReturn = retornoProblema;
+    public ResultExecutionFlow(FinalTypeReturn finalTypeReturn, ProblemType problemType) {
+        this.finalTypeReturn = finalTypeReturn;
+        this.problemType = problemType;
     }
 
-    public static <TipoRetornoFinal,TipoProblema> ResultExecutionFlow<TipoRetornoFinal,TipoProblema> success(TipoRetornoFinal retornoSucesso) {
-        return new ResultExecutionFlow<TipoRetornoFinal,TipoProblema>(retornoSucesso,null);
+    public static <FinalTypeReturn, ProblemType extends RuntimeException> ResultExecutionFlow<FinalTypeReturn, ProblemType> Success(FinalTypeReturn finalTypeReturn) {
+        return new ResultExecutionFlow<>(finalTypeReturn, null);
     }
 
-    public static <TipoRetornoFinal,TipoProblema> ResultExecutionFlow<TipoRetornoFinal,TipoProblema> problem(TipoProblema retornoProblema) {
-        return new ResultExecutionFlow<TipoRetornoFinal,TipoProblema>(null,retornoProblema);
+    public static <FinalTypeReturn, ProblemType extends RuntimeException> ResultExecutionFlow<FinalTypeReturn, ProblemType> fail(ProblemType problemType) {
+        return new ResultExecutionFlow<>(null, problemType);
     }
 
-    @SuppressWarnings("unchecked")
-    public <ExceptionType> ResultExecutionFlow<FinalTypeReturn,ProblemType> throwsEarlyIf(Class<ExceptionType> classeProblema, Function<ExceptionType, ? extends Exception> funcao) throws Exception {
-        if(problemReturn != null && problemReturn.getClass().equals(classeProblema)) {
-            throw funcao.apply((ExceptionType)this.problemReturn);
-        }
-
-        return this;
-    }
-
-    public Optional<FinalTypeReturn> execute() {
-        return Optional.ofNullable(this.finalReturn);
-    }
-
-    public ResultExecutionFlow<FinalTypeReturn,ProblemType> ifProblem(
-            Class<?> classeProblema, Function<ProblemType, FinalTypeReturn> funcao) {
-
-        if(problemReturn != null && classeProblema.isAssignableFrom(problemReturn.getClass())) {
-            Assert.isTrue(Objects.isNull(this.finalReturn), "O retorno final não deveria estar setado ainda. "+this.finalReturn);
-            this.finalReturn = funcao.apply(this.problemReturn);
+    public ResultExecutionFlow<FinalTypeReturn, ProblemType> throwsEarlyIf(Class<? extends RuntimeException> exceptionType, Function<ProblemType, ? extends RuntimeException> exceptionMapper) throws RuntimeException {
+        if (problemType != null && problemType.getClass().equals(exceptionType)) {
+            throw exceptionMapper.apply(this.problemType);
         }
         return this;
+    }
+
+    public FinalTypeReturn execute() {
+        return this.finalTypeReturn != null ? this.finalTypeReturn : null;
     }
 
 }
-

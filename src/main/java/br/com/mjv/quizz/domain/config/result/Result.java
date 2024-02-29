@@ -1,64 +1,58 @@
 package br.com.mjv.quizz.domain.config.result;
 
-import org.springframework.util.Assert;
-
 import java.util.function.Function;
 
-public class Result<ProblemType extends RuntimeException, SuccessType> {
+public class Result<Success, Problem extends RuntimeException> {
 
-    private boolean isSuccess;
-    private ProblemType problem;
-    private SuccessType successReturnObject;
+    private Success success;
+    private Problem problem;
+    private boolean isError;
 
-    private Result(SuccessType successReturnObject) {
-        this.successReturnObject = successReturnObject;
-        this.isSuccess = true;
+    public Result(Success success) {
+        this.success = success;
+        this.isError = false;
     }
 
-    private Result(boolean success) {
-        this.isSuccess = success;
-    }
-
-    private Result(ProblemType problem) {
+    public Result(Problem problem) {
         this.problem = problem;
+        this.isError = true;
     }
 
-    public static Result<RuntimeException, Void> emptySuccess() {
-        return new Result<RuntimeException, Void>(true);
+    public static <Success, Problem extends RuntimeException> Result<Success, Problem> successWithReturn(Success success) {
+        return new Result<>(success);
     }
 
-    public static <TipoProblema extends RuntimeException, TipoRetorno> Result<TipoProblema, TipoRetorno> failWithProblem(
-            TipoProblema problema) {
-        return new Result<TipoProblema, TipoRetorno>(problema);
+    public static <Success, Problem extends RuntimeException> Result<Success, Problem> failWithProblem(Problem problem) {
+        return new Result<>(problem);
     }
 
-    public boolean hasError() {
-        return !this.isSuccess;
+    public <T> ResultExecutionFlow<T, Problem> ifSuccess(Function<Success, T> function) {
+        if (isSuccess()) {
+            return ResultExecutionFlow.Success(function.apply(success));
+        } else {
+            return ResultExecutionFlow.fail(problem);
+        }
     }
 
-    public RuntimeException getProblem() {
-        Assert.isTrue(!isSuccess, "Só pode buscar o problema se tiver erro");
+    public Success getSuccess() {
+        if (!isSuccess()) {
+            throw new IllegalStateException("Result is not a success");
+        }
+        return this.success;
+    }
+
+    public Problem getProblem() {
+        if (!isFailure()) {
+            throw new IllegalStateException("Result is not a failure");
+        }
         return this.problem;
     }
 
-    public SuccessType getSuccessReturn() {
-        Assert.isTrue(isSuccess, "Só pode buscar o sucesso se tiver dado certo");
-        return this.successReturnObject;
-    }
-
     public boolean isSuccess() {
-        return this.isSuccess;
+        return !isError;
     }
 
-    public static <T> Result<RuntimeException, T> successWithReturn(
-            T successReturn) {
-        return new Result<RuntimeException, T>(successReturn);
-    }
-
-    public <T> ResultExecutionFlow<T,ProblemType> ifSuccess(Function<SuccessType, T> funcao) {
-        if(isSuccess()) {
-            return ResultExecutionFlow.success(funcao.apply(this.successReturnObject));
-        }
-        return ResultExecutionFlow.problem(this.problem);
+    public boolean isFailure() {
+        return isError;
     }
 }

@@ -1,7 +1,6 @@
 package br.com.mjv.quizz.application.useCases.user;
 
 import br.com.mjv.quizz.domain.config.result.Result;
-import br.com.mjv.quizz.domain.config.result.ReturnWithMessage;
 import br.com.mjv.quizz.domain.config.validator.Validator;
 import br.com.mjv.quizz.domain.user.User;
 import br.com.mjv.quizz.domain.user.dto.CreateUpdateUserDto;
@@ -9,13 +8,12 @@ import br.com.mjv.quizz.domain.user.dto.validator.UserValidate;
 import br.com.mjv.quizz.domain.user.repository.UsersRepository;
 import br.com.mjv.quizz.infrastructure.configs.exception.UserException;
 import br.com.mjv.quizz.infrastructure.persistence.entity.basicEntity.ChatContext;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
+@Slf4j
 public class CreateUserUseCase {
 
     private final UsersRepository repository;
@@ -30,28 +28,32 @@ public class CreateUserUseCase {
         return ResourceBundle.getBundle(messageBundle.getBaseBundleName(), locale).getString(key);
     }
 
-    public ReturnWithMessage<User> execute(CreateUpdateUserDto userDto, Locale locale) throws Exception {
+    public User execute(CreateUpdateUserDto userDto, Locale locale) {
         Validator.validate(new UserValidate(), userDto);
-
         User user = new User(userDto.name(), userDto.phone(),userDto.score(), ChatContext.INITIALIZED_CHAT);
-        var result = add(user);
-
-        return result.ifSuccess(user1 -> {
-            return new ReturnWithMessage<User>(getMessage("users.create.success", locale), user1);
-        }).throwsEarlyIf(RuntimeException.class, error -> {
-            return new RuntimeException(getMessage("users.create.fail", locale), error);
-        }).execute().orElseThrow(() -> {
-            return new UserException(getMessage("users.create.fail", locale));
-        });
+        return result(user, locale);
     }
 
-    private Result<RuntimeException, User> add(User user) {
-        var result = repository.add(user).orElse(null);
+    public User execute(CreateUpdateUserDto userDto) {
+        Validator.validate(new UserValidate(), userDto);
+        User user = new User(userDto.name(), userDto.phone(),userDto.score(), ChatContext.INITIALIZED_CHAT);
+        return result(user, Locale.ENGLISH);
+    }
 
-        if(Objects.isNull(result)) {
-            return Result.failWithProblem(new RuntimeException());
-        } else {
-            return Result.successWithReturn(result);
-        }
+    public User result(User user, Locale locale) {
+        var result = add(user);
+        return result.ifSuccess(user1 -> {
+            log.info("User -> phone {}, status: {}", user.phone(), getMessage("users.create.success", locale));
+            return user1;
+        }).throwsEarlyIf(RuntimeException.class, error -> {
+            log.info("User -> phone: {}, status: {}", user.phone(), getMessage("users.create.fail", locale));
+            return new UserException("Error create user");
+        }).execute();
+    }
+
+    private Result<User, RuntimeException> add(User user) {
+        return repository.add(user)
+                .map(Result::<User, RuntimeException>successWithReturn)
+                .orElse(Result.failWithProblem(new UserException("Error create user")));
     }
 }

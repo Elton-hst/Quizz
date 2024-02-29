@@ -1,6 +1,7 @@
 package br.com.mjv.quizz.infrastructure.web;
 
 import br.com.mjv.quizz.application.facede.UserFacade;
+import br.com.mjv.quizz.domain.user.User;
 import br.com.mjv.quizz.domain.user.dto.CreateUpdateUserDto;
 import br.com.mjv.quizz.domain.user.dto.GetUserDto;
 import br.com.mjv.quizz.infrastructure.web.docs.UserControllerDocs;
@@ -24,7 +25,7 @@ public class UserController implements UserControllerDocs {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<ReturnWithMessage> createUser(@RequestBody CreateUpdateUserDto userDto, UriComponentsBuilder uriBuilder, final Locale locale) {
+    public ResponseEntity<User> createUser(@RequestBody CreateUpdateUserDto userDto, UriComponentsBuilder uriBuilder, final Locale locale) throws Exception {
         var user = userFacade.createUser(userDto, locale);
         URI uri = uriBuilder.path("/user/{name}").buildAndExpand(userDto.name()).toUri();
         return new ResponseEntity<>(user, HttpStatus.CREATED);
@@ -38,7 +39,7 @@ public class UserController implements UserControllerDocs {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody CreateUpdateUserDto userDto, final Locale locale) {
+    public ResponseEntity<?> updateUser(@RequestBody CreateUpdateUserDto userDto, final Locale locale) throws Exception {
         var user = userFacade.updateUser(userDto, locale);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
